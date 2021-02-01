@@ -60,7 +60,8 @@ def run_matching():
 									   fixed=GA['fixed_parameters'], 
 									   error_function=error_function, 
 	                                   find_peaks_kwargs={'width':GA['peak_find_width'], 'prominence':0.005},
-	                                   outname=fname)
+	                                   outname=fname, wavelength=GA['wavelength'],
+	                                   exp_model_method=GA['experimental_model'])
 
 	matching.run(GA['outer_iterations'], GA['max_fraction_change'], args.optimizer, OA[args.optimizer], GA['halting_criteria'])
 

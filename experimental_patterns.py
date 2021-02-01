@@ -53,7 +53,7 @@ class experimental_pattern(object):
         exp_pattern = self.experimental_pattern
         x = exp_pattern[:,0]
         y = exp_pattern[:,1]
-        model = interpolate.interp1d(x, y, kind='linear')
+        model = interpolate.interp1d(x, y, kind='linear', fill_value='extrapolate')
 
         return model
 
@@ -69,6 +69,9 @@ class experimental_pattern(object):
             model = self.fit_InterpolationModel()
         elif method == 'GaussianModel':
             model = self.fit_GaussianModel(find_peaks_kwargs=find_peaks_kwargs)
+        else:
+            raise ValueError('Experimental model type should be GaussianModel or InterpolationModel')
+
         yvals = model(xvals)
- 
+
         return np.array([xvals,yvals]).T

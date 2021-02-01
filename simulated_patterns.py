@@ -1,3 +1,4 @@
+import glob
 import numpy as np
 from pymatgen.core.lattice import Lattice
 from pymatgen.analysis.diffraction.xrd import XRDCalculator
@@ -42,13 +43,13 @@ class simulated_pattern(object):
 
         self.change_lattice_constants(perturbed_params)
             
-    def find_peaks(self):
+    def find_peaks(self, wavelength='CuKa'):
 
-        XRD = XRDCalculator(symprec=0, wavelength='CuKa').get_pattern(self.struct, scaled=True, two_theta_range=(0,self.max_2theta))
+        XRD = XRDCalculator(symprec=0, wavelength=wavelength).get_pattern(self.struct, scaled=True, two_theta_range=(0,self.max_2theta))
         
         return np.array([XRD.x, XRD.y]).T
 
-    def fit_GaussianModel(self, uc_params, mode='aniso', sd=0.05):
+    def fit_GaussianModel(self, uc_params, mode='aniso', sd=0.01, wavelength='CuKa'):
 
         if mode == 'iso':
             uc_params = np.array([uc_params[0],uc_params[0],uc_params[0],uc_params[1],uc_params[2],uc_params[3]])
@@ -60,16 +61,38 @@ class simulated_pattern(object):
             uc_params = np.array([uc_params[0],uc_params[1],uc_params[1],uc_params[2],uc_params[3],uc_params[4]])
 
         self.change_lattice_constants(uc_params)
-        peaks = self.find_peaks()
+        peaks = self.find_peaks(wavelength=wavelength)
         data = np.c_[peaks, np.full((len(peaks),), fill_value=sd)]
         model = lambda x: GaussianSum(x, data)
 
         return model
 
-    def model_pattern_predictions(self, xvals, uc_params, mode='aniso'):
+    def unchanged_GaussianModel(self, xvals, sd=0.01, wavelength='CuKa'):
 
-        model = self.fit_GaussianModel(uc_params, mode=mode)
+        peaks = self.find_peaks(wavelength=wavelength)
+        data = np.c_[peaks, np.full((len(peaks),), fill_value=sd)]
+        model = lambda x: GaussianSum(x, data)
+        yvals = model(xvals)
+
+        return np.array([xvals,yvals]).T
+
+    def model_pattern_predictions(self, xvals, uc_params, mode='aniso', wavelength='CuKa'):
+
+        model = self.fit_GaussianModel(uc_params, mode=mode, wavelength=wavelength)
         yvals = model(xvals)
         yvals /= max(yvals)
 
         return np.array([xvals,yvals]).T
+
+if __name__ =='__main__':
+
+	cifs = glob.glob('*.cif')
+	for cif in cifs:
+
+		name = cif.split('.')[0]
+		topo = name.split('_')[1]
+
+		SIMP = simulated_pattern(cif, max_2theta=10.0)
+		xvals = np.linspace(0.5,10.0,2500)
+		pattern = SIMP.unchanged_GaussianModel(xvals, wavelength=0.45256)
+		np.savetxt('sim_' + topo + '.txt', pattern, delimiter=' ')

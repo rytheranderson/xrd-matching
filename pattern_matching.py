@@ -14,7 +14,7 @@ def city_block(x, y):
     return np.sum(np.abs(x-y))
 
 def MAE(x, y):
-
+    
     return np.average(np.abs(x-y))
 
 def Euclidean(x, y):
@@ -74,7 +74,8 @@ class SimExp_pattern_matching(object):
 
     def __init__(self, exp, sim, xvals, mode='aniso', fixed=[0,0,0,1,1,1], 
                  exp_model_method='GaussianModel', error_function=city_block,
-                 find_peaks_kwargs={'width':3, 'prominence':0.005}, outname='output'):
+                 find_peaks_kwargs={'width':3, 'prominence':0.005}, 
+                 wavelength='CuKa', outname='output'):
 
         if not os.path.exists(outname):
             os.makedirs(outname)
@@ -85,9 +86,10 @@ class SimExp_pattern_matching(object):
         self.exp = exp
         self.xvals = xvals
         self.find_peaks_kwargs = find_peaks_kwargs
+        self.wavelength = wavelength
 
         EMP = exp.model_pattern_predictions(xvals, method=exp_model_method, find_peaks_kwargs=find_peaks_kwargs)
-        
+
         self.EMP = EMP
         self.error_function = error_function
 
@@ -98,10 +100,11 @@ class SimExp_pattern_matching(object):
                       'bc':[fixed[0],fixed[1],fixed[3],fixed[4],fixed[5]]}
 
         self.fixed = list(map(bool,fixed_dict[mode]))
+        print('matching class initialized...')
 
     def objective(self, X):
 
-        SMP = self.sim.model_pattern_predictions(self.xvals, X, mode=self.mode)
+        SMP = self.sim.model_pattern_predictions(self.xvals, X, mode=self.mode, wavelength=self.wavelength)
         sim_y = SMP[:,1]
         exp_y = self.EMP[:,1]
         error = self.error_function(sim_y, exp_y)
@@ -132,7 +135,7 @@ class SimExp_pattern_matching(object):
                 
                 def callbackF(xk, convergence=100.0):
     
-                    SMP = self.sim.model_pattern_predictions(self.xvals, xk)[:,1]
+                    SMP = self.sim.model_pattern_predictions(self.xvals, xk, wavelength=self.wavelength)[:,1]
                     EMP = self.EMP[:,1]
                     crit = halting_criteria[0](SMP, EMP)
                     print('halting criteria value =', np.round(crit, 5))
@@ -184,7 +187,7 @@ class SimExp_pattern_matching(object):
 
     def plot_matching_resuts(self, SMP0):
 
-        SMP1 = self.sim.model_pattern_predictions(self.xvals, self.matched_uc_params)
+        SMP1 = self.sim.model_pattern_predictions(self.xvals, self.matched_uc_params, wavelength=self.wavelength)
 
         fig, axes = plt.subplots(2, 1, figsize=(7.5, 5.0))
         axes[0].plot(self.xvals, SMP0[:,1] + 0.1, color='orange', label='Initial Simulated Pattern', linewidth=0.6)
@@ -201,7 +204,7 @@ class SimExp_pattern_matching(object):
 
     def write_matched_pattern(self, xvals, uc_params):
 
-        pattern = self.sim.model_pattern_predictions(self.xvals, self.matched_uc_params)
+        pattern = self.sim.model_pattern_predictions(self.xvals, self.matched_uc_params, wavelength=self.wavelength)
         np.savetxt(self.outname + os.sep + self.outname + '_matched_pattern.txt', pattern, delimiter=' ')
 
     def write_cif(self):
@@ -212,7 +215,7 @@ class SimExp_pattern_matching(object):
     def run(self, outer_iterations, max_fraction_change, method, method_kwargs, halting_criteria):
 
         UC0 = self.sim.struct.lattice.abc + self.sim.struct.lattice.angles
-        SMP0 = self.sim.model_pattern_predictions(self.xvals, UC0)
+        SMP0 = self.sim.model_pattern_predictions(self.xvals, UC0, wavelength=self.wavelength)
         EMP = self.EMP[:,1]
 
         for i in range(outer_iterations):
@@ -229,7 +232,7 @@ class SimExp_pattern_matching(object):
         self.write_matched_pattern(self.xvals, self.matched_uc_params)
         self.write_cif()
 
-        FSMP = self.sim.model_pattern_predictions(self.xvals, self.matched_uc_params)[:,1]
+        FSMP = self.sim.model_pattern_predictions(self.xvals, self.matched_uc_params, wavelength=self.wavelength)[:,1]
         mae = MAE(EMP, FSMP)
         mse = MSE(EMP, FSMP)
         clark = Clark(EMP, FSMP)

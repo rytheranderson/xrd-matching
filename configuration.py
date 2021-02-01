@@ -2,18 +2,20 @@ import pattern_matching as pm
 
 general_arguments = {
 	'exp_pattern_delimiter':'',
-	'outer_iterations': 2,
+	'outer_iterations': 1,
 	'num_points': 1000,
-	'min_2theta': 2.0,
-	'max_2theta': 100.0,
+	'min_2theta': 0.5,
+	'max_2theta': 3.5,
 	'constraint_mode': 'aniso',
-	'fixed_parameters': (0,0,0,1,1,1),
-	'error_function': None,
+	'fixed_parameters': (0,0,0,1,1,0),
+	'error_function': pm.city_block,
 	'peak_find_width': 3,
-	'max_fraction_change': 0.15,
-	'experimental_model': 'GaussianModel',
-	'randomly_perturb': (True, 0.08, 0.12),
-	'halting_criteria': (pm.MAE, 0.0012)
+	'max_fraction_change': 0.06,
+	'experimental_model': 'InterpolationModel',
+	'randomly_perturb': (False, 0.08, 0.12),
+	#'halting_criteria': (pm.MAE, 0.0012),
+	'halting_criteria': None,
+	'wavelength': 0.45256
 }
 
 optimizer_arguments = {
@@ -21,8 +23,8 @@ optimizer_arguments = {
 	# a larger recombination, popsize and/or smaller mutation value may speed convergence but will 
 	# result in a more narrow search. For more difficult cases parameters geared towards a broad 
 	# search may work better.
-		'maxiter': 500,
-		'popsize': 20, 
+		'maxiter': 30,
+		'popsize': 15, 
 		'recombination': 0.80,
 		'mutation': (0.5,1.0),
 		'strategy': 'randtobest1bin'
