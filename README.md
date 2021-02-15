@@ -1,4 +1,4 @@
-# cif2lammps
+# XRD_matching
 ## Authors
 
 - Ryther Anderson
