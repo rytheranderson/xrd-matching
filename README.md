@@ -5,7 +5,7 @@
 
 ## Motivation
 XRD_matching is a Python 3 program which matches the XRD pattern of a simulated material with an experimental XRD pattern by varying the lattice parameters of the simulated material.
-This is what Rietveld refinement seeks to do. However, Rietveld refinement uses least squares, which does not work well for complex materials such as MOFs, or when significant peak splitting is occuring.
+This is what Rietveld refinement seeks to do. However, Rietveld refinement uses least squares, which does not work well for complex materials such as MOFs, or when significant peak splitting is occuring. Currently, this code is appropriate to find an initial guess for a further Rietveld refinement.
 The implementation here uses differential evolution (from scipy) to find a global minimum of an arbitrary similarity metric (i.e. error function).
 
 ## Current Status
